@@ -45,6 +45,8 @@ export default class DefaultDeviceController implements DeviceControllerBasedMed
   private isAndroid: boolean = false;
   private isPixel3: boolean = false;
 
+  private noDeviceTimestampMs: number | null = null;
+
   constructor(private logger: Logger) {
     this.isAndroid = /(android)/i.test(navigator.userAgent);
     this.isPixel3 = /( pixel 3)/i.test(navigator.userAgent);
@@ -534,8 +536,10 @@ export default class DefaultDeviceController implements DeviceControllerBasedMed
   }
 
   private async chooseVideoInputDeviceInternal(device: Device, fromAcquire: boolean): Promise<DevicePermission> {
+    const startTimeMs = Date.now();
     const kind = 'video';
     if (device === null) {
+      this.noDeviceTimestampMs = startTimeMs;
       if (this.activeDevices[kind]) {
         this.releaseMediaStream(this.activeDevices[kind].stream);
         delete this.activeDevices[kind];
@@ -543,7 +547,7 @@ export default class DefaultDeviceController implements DeviceControllerBasedMed
       return DevicePermission.PermissionGrantedByBrowser;
     }
 
-    let proposedConstraints: MediaStreamConstraints | null = this.calculateMediaStreamConstraints(
+    const proposedConstraints: MediaStreamConstraints | null = this.calculateMediaStreamConstraints(
       kind,
       device
     );
@@ -556,11 +560,18 @@ export default class DefaultDeviceController implements DeviceControllerBasedMed
       return DevicePermission.PermissionGrantedPreviously;
     }
 
-    const startTimeMs = Date.now();
-    let oldStream: MediaStream | null = null;
+    let oldStream: MediaStream | null;
     try {
       this.logger.info(`requesting new video device with constraint ${proposedConstraints}`);
       const deviceSelection = await this.getDeviceSelection(kind, device, proposedConstraints);
+      if (this.noDeviceTimestampMs !== null && this.noDeviceTimestampMs > startTimeMs) {
+        this.logger.info(`ignored to get video device for constraints ${JSON.stringify(proposedConstraints)} as no device request arrived`);
+        this.releaseMediaStream(deviceSelection.stream);
+        return Date.now() - startTimeMs <
+          DefaultDeviceController.permissionGrantedOriginDetectionThresholdMs
+          ? DevicePermission.PermissionGrantedByBrowser
+          : DevicePermission.PermissionGrantedByUser;
+      }
       oldStream = this.activeDevices[kind] ? this.activeDevices[kind].stream : null;
       this.activeDevices[kind] = deviceSelection;
       this.logger.info(`got video device for constraints ${JSON.stringify(proposedConstraints)}`);
