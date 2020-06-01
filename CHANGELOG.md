@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- Add device controller tests
 
 ### Changed
 - Switch demo DDB table to on demand
@@ -20,6 +21,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix log line to print device constraints
 - Fix build line to take out duplicate npm install
 - Fix video audio preview for mobile devices
+- Fix the LED light issue
 
 ## [1.7.0] - 2020-05-23
 
