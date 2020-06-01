@@ -3,7 +3,7 @@ const fs = require('fs-extra');
 const path = require("path");
 
 // Parameters
-let region = 'us-east-1';
+let region = 'us-west-2';
 let bucket = ``;
 let stack = ``;
 let app = `meeting`;
@@ -25,17 +25,20 @@ function usage() {
   console.log(`  -h, --help         Show help and exit`);
 }
 
+//HAD TO COMMENT OUT DUE TO ERROR WHEN TRY TO CREATE
+//FOR NOW, CREATE BUCKET FIRST THEN RUN DEPLOY.SH
 function ensureBucket() {
-  const s3Api = spawnSync('aws', ['s3api', 'head-bucket', '--bucket', `${bucket}`, '--region', `${region}`]);
-  if (s3Api.status !== 0) {
-    console.log(`Creating S3 bucket ${bucket}`);
-    const s3 = spawnSync('aws', ['s3', 'mb', `s3://${bucket}`, '--region', `${region}`]);
-    if (s3.status !== 0) {
-      console.log(`Failed to create bucket: ${JSON.stringify(s3)}`);
-      console.log((s3.stderr || s3.stdout).toString());
-      process.exit(s3.status)
-    }
-  }
+  // const s3Api = spawnSync('aws', ['s3api', 'head-bucket', '--bucket', `${bucket}`, '--region', `${region}`]);
+  // if (s3Api.status !== 0) {
+  //   console.log(`Creating S3 bucket ${bucket}`);
+  //   console.log(`Bucket: ${JSON.stringify(s3Api)}`);
+  //   const s3 = spawnSync('aws', ['s3', 'mb', `s3://${bucket}`, '--region', `${region}`]);
+  //   if (s3.status !== 0) {
+  //     console.log(`Failed to create bucket: ${JSON.stringify(s3)}`);
+  //     console.log((s3.stderr || s3.stdout).toString());
+  //     process.exit(s3.status)
+  //   }
+  // }
 }
 
 function getArgOrExit(i, args) {
